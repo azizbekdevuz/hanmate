@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
-import { defaultLocale } from "@/lib/i18n";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const notoSansKR = Noto_Sans_KR({
   variable: "--font-sans",
@@ -19,12 +19,7 @@ export const metadata: Metadata = {
 /**
  * Root Layout
  * 
- * This is the root layout that provides the HTML structure.
- * The locale-specific layout at app/[locale]/layout.tsx handles
- * the actual content and theme provider.
- * 
- * Note: The lang attribute will be set dynamically by the locale layout
- * via a client component, but we set a default here for SSR.
+ * Simple root layout for single-page HanMate app.
  */
 export default function RootLayout({
   children,
@@ -32,9 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang={defaultLocale} suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning>
       <body className={`${notoSansKR.variable} font-sans antialiased`}>
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
