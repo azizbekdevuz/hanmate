@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { ChatBubble } from './ChatBubble';
 import { type Locale } from '@/lib/i18n';
+import { useTranslations } from '@/lib/use-translations';
 
 export interface Message {
   id: string;
@@ -28,6 +29,7 @@ interface ChatViewProps {
 }
 
 export const ChatView = forwardRef<ChatViewHandle, ChatViewProps>(function ChatView({ locale, onNewMessage }, ref) {
+  const t = useTranslations(locale);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,10 +108,7 @@ export const ChatView = forwardRef<ChatViewHandle, ChatViewProps>(function ChatV
       // Speak the AI reply
       speakText(data.reply, locale);
     } catch (err) {
-      const errorMsg = locale === 'ko'
-        ? '응답을 받는 중 오류가 발생했습니다. 다시 시도해주세요.'
-        : 'An error occurred while getting a response. Please try again.';
-      setError(errorMsg);
+      setError(t('chat.error'));
       console.error('AI request error:', err);
     } finally {
       setIsLoading(false);
@@ -151,9 +150,7 @@ export const ChatView = forwardRef<ChatViewHandle, ChatViewProps>(function ChatV
         {messages.length === 0 && !isLoading && (
           <div className="chat-empty">
             <p className="chat-empty-text">
-              {locale === 'ko' 
-                ? '말씀을 시작해주세요. 제가 들어드리겠습니다.' 
-                : 'Please start speaking. I\'m here to listen.'}
+              {t('chat.empty')}
             </p>
           </div>
         )}
@@ -171,7 +168,7 @@ export const ChatView = forwardRef<ChatViewHandle, ChatViewProps>(function ChatV
           <div className="chat-bubble chat-bubble-ai">
             <div className="chat-bubble-content">
               <p className="chat-bubble-text chat-loading">
-                {locale === 'ko' ? '생각 중이에요...' : 'Thinking...'}
+                {t('chat.thinking')}
               </p>
             </div>
           </div>

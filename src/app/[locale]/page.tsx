@@ -9,6 +9,7 @@
  */
 
 import { type Locale } from "@/lib/i18n";
+import { getTranslations } from "@/lib/get-translations";
 import { VoiceInterface } from "@/components/VoiceInterface";
 
 interface PageProps {
@@ -17,13 +18,14 @@ interface PageProps {
 
 export default async function Home({ params }: PageProps) {
   const { locale } = await params;
+  const t = getTranslations(locale);
 
   return (
     <main className="app-main">
       <div className="app-content">
         <h1 className="app-title">HanMate</h1>
         <p className="app-subtitle">
-          {locale === 'ko' ? '말씀만 하세요. 제가 들어드릴게요.' : 'Just speak. I\'ll listen.'}
+          {t('common.subtitle')}
         </p>
         
         {/* Voice Interface */}

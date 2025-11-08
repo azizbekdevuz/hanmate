@@ -4,21 +4,21 @@
  * Simple footer with tagline and copyright
  */
 
-import { getLocale } from '@/lib/i18n';
-import { translations } from '@/lib/i18n';
+import { type Locale } from '@/lib/i18n';
+import { getTranslations } from '@/lib/get-translations';
 
 interface FooterProps {
-  locale: string;
+  locale: Locale;
 }
 
 export function Footer({ locale }: FooterProps) {
-  const t = translations[locale as keyof typeof translations] || translations.ko;
+  const t = getTranslations(locale);
 
   return (
     <footer className="footer">
       <div className="footer-container">
-        <p className="footer-tagline">{t.footer.tagline}</p>
-        <p className="footer-copyright">{t.footer.copyright}</p>
+        <p className="footer-tagline">{t('footer.tagline')}</p>
+        <p className="footer-copyright">{t('footer.copyright')}</p>
       </div>
     </footer>
   );

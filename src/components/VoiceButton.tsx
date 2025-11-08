@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { type Locale } from '@/lib/i18n';
+import { useTranslations } from '@/lib/use-translations';
 
 interface VoiceButtonProps {
   onTranscript: (text: string) => void;
@@ -18,6 +19,7 @@ interface VoiceButtonProps {
 }
 
 export function VoiceButton({ onTranscript, onError, locale, disabled = false }: VoiceButtonProps) {
+  const t = useTranslations(locale);
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -51,19 +53,12 @@ export function VoiceButton({ onTranscript, onError, locale, disabled = false }:
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        let errorMessage = '음성 인식 중 오류가 발생했습니다.';
-        if (locale === 'en') {
-          errorMessage = 'An error occurred during speech recognition.';
-        }
+        let errorMessage = t('voice.error');
 
         if (event.error === 'no-speech') {
-          errorMessage = locale === 'ko' 
-            ? '음성이 감지되지 않았습니다. 다시 시도해주세요.' 
-            : 'No speech detected. Please try again.';
+          errorMessage = t('voice.noSpeech');
         } else if (event.error === 'not-allowed') {
-          errorMessage = locale === 'ko'
-            ? '마이크 권한이 필요합니다. 브라우저 설정을 확인해주세요.'
-            : 'Microphone permission is required. Please check your browser settings.';
+          errorMessage = t('voice.permissionDenied');
         }
 
         onError(errorMessage);
@@ -77,11 +72,7 @@ export function VoiceButton({ onTranscript, onError, locale, disabled = false }:
       recognitionRef.current = recognition;
     } else {
       setIsSupported(false);
-      onError(
-        locale === 'ko'
-          ? '이 브라우저는 음성 인식을 지원하지 않습니다.'
-          : 'This browser does not support speech recognition.'
-      );
+      onError(t('voice.browserNotSupported'));
     }
 
     return () => {
@@ -100,11 +91,7 @@ export function VoiceButton({ onTranscript, onError, locale, disabled = false }:
       try {
         recognitionRef.current?.start();
       } catch (error) {
-        onError(
-          locale === 'ko'
-            ? '음성 인식을 시작할 수 없습니다. 다시 시도해주세요.'
-            : 'Could not start speech recognition. Please try again.'
-        );
+        onError(t('voice.couldNotStart'));
       }
     }
   };
@@ -116,14 +103,14 @@ export function VoiceButton({ onTranscript, onError, locale, disabled = false }:
           type="button"
           disabled
           className="voice-button voice-button-disabled"
-          aria-label={locale === 'ko' ? '음성 인식 미지원' : 'Speech recognition not supported'}
+          aria-label={t('voice.notSupported')}
         >
           <svg className="voice-button-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
           </svg>
         </button>
         <p className="voice-button-hint">
-          {locale === 'ko' ? '음성 인식이 지원되지 않습니다' : 'Speech recognition not supported'}
+          {t('voice.notSupported')}
         </p>
       </div>
     );
@@ -136,10 +123,7 @@ export function VoiceButton({ onTranscript, onError, locale, disabled = false }:
         onClick={handleClick}
         disabled={disabled}
         className={`voice-button ${isListening ? 'voice-button-listening' : ''} ${disabled ? 'voice-button-disabled' : ''}`}
-        aria-label={isListening 
-          ? (locale === 'ko' ? '듣는 중...' : 'Listening...')
-          : (locale === 'ko' ? '말하기 시작' : 'Start speaking')
-        }
+        aria-label={isListening ? t('voice.listening') : t('voice.startSpeaking')}
         aria-pressed={isListening}
       >
         {isListening ? (
@@ -153,10 +137,7 @@ export function VoiceButton({ onTranscript, onError, locale, disabled = false }:
         )}
       </button>
       <p className="voice-button-hint">
-        {isListening 
-          ? (locale === 'ko' ? '듣고 있어요...' : 'Listening...')
-          : (locale === 'ko' ? '버튼을 눌러 말씀해주세요' : 'Press to speak')
-        }
+        {isListening ? t('voice.listening') : t('voice.pressToSpeak')}
       </p>
     </div>
   );

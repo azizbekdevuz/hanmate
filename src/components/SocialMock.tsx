@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * SocialMock Component
  * 
@@ -6,6 +8,7 @@
  */
 
 import { type Locale } from '@/lib/i18n';
+import { useTranslations } from '@/lib/use-translations';
 
 interface Person {
   name: string;
@@ -31,14 +34,12 @@ interface SocialMockProps {
 }
 
 export function SocialMock({ locale }: SocialMockProps) {
+  const t = useTranslations(locale);
   const people = locale === 'ko' ? mockPeople : mockPeopleEn;
-  const title = locale === 'ko' ? '오늘 대화하고 싶은 분들' : 'People Looking to Chat Today';
-  const connectText = locale === 'ko' ? '연결 요청' : 'Request Connection';
-  const comingSoon = locale === 'ko' ? '(준비 중)' : '(Coming Soon)';
 
   return (
     <div className="social-mock">
-      <h3 className="social-mock-title">{title}</h3>
+      <h3 className="social-mock-title">{t('social.title')}</h3>
       <div className="social-mock-list">
         {people.map((person, index) => (
           <div key={index} className="social-mock-card">
@@ -56,17 +57,15 @@ export function SocialMock({ locale }: SocialMockProps) {
               type="button"
               disabled
               className="social-mock-button"
-              aria-label={`${connectText} - ${person.name}`}
+              aria-label={`${t('social.connectRequest')} - ${person.name}`}
             >
-              {connectText} {comingSoon}
+              {t('social.connectRequest')} {t('social.comingSoon')}
             </button>
           </div>
         ))}
       </div>
       <p className="social-mock-note">
-        {locale === 'ko' 
-          ? '곧 실제 연결 기능이 제공될 예정입니다.' 
-          : 'Real connection features coming soon.'}
+        {t('social.note')}
       </p>
     </div>
   );

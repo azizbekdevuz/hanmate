@@ -1,0 +1,42 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About"
+  },
+  "footer": {
+    "tagline": "A Warm AI Companion",
+    "copyright": "© 2025 HanMate. All rights reserved."
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "voice": {
+    "startSpeaking": "Start speaking",
+    "listening": "Listening...",
+    "pressToSpeak": "Press to speak",
+    "notSupported": "Speech recognition not supported",
+    "error": "An error occurred during speech recognition.",
+    "noSpeech": "No speech detected. Please try again.",
+    "permissionDenied": "Microphone permission is required. Please check your browser settings.",
+    "browserNotSupported": "This browser does not support speech recognition.",
+    "couldNotStart": "Could not start speech recognition. Please try again."
+  },
+  "chat": {
+    "empty": "Please start speaking. I'm here to listen.",
+    "thinking": "Thinking...",
+    "error": "An error occurred while getting a response. Please try again."
+  },
+  "social": {
+    "title": "People Looking to Chat Today",
+    "connectRequest": "Request Connection",
+    "comingSoon": "(Coming Soon)",
+    "note": "Real connection features coming soon."
+  },
+  "common": {
+    "subtitle": "Just speak. I'll listen.",
+    "voiceInterfaceComing": "Voice interface coming next..."
+  }
+}
+
