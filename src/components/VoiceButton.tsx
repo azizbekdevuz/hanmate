@@ -23,8 +23,16 @@ export function VoiceButton({ onTranscript, onError, locale, disabled = false }:
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const onTranscriptRef = useRef(onTranscript);
+  const onErrorRef = useRef(onError);
 
-  // Check for SpeechRecognition support
+  // Keep callbacks in refs to avoid recreating recognition
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript;
+    onErrorRef.current = onError;
+  }, [onTranscript, onError]);
+
+  // Check for SpeechRecognition support and initialize
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -32,65 +40,93 @@ export function VoiceButton({ onTranscript, onError, locale, disabled = false }:
       (window as any).SpeechRecognition || 
       (window as any).webkitSpeechRecognition;
 
-    if (SpeechRecognition) {
-      setIsSupported(true);
-      const recognition = new SpeechRecognition();
-      
-      // Configure for Korean
-      recognition.lang = locale === 'ko' ? 'ko-KR' : 'en-US';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const transcript = event.results[0][0].transcript;
-        onTranscript(transcript);
-        setIsListening(false);
-      };
-
-      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        let errorMessage = t('voice.error');
-
-        if (event.error === 'no-speech') {
-          errorMessage = t('voice.noSpeech');
-        } else if (event.error === 'not-allowed') {
-          errorMessage = t('voice.permissionDenied');
-        }
-
-        onError(errorMessage);
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
-    } else {
+    if (!SpeechRecognition) {
       setIsSupported(false);
-      onError(t('voice.browserNotSupported'));
+      // Use setTimeout to avoid calling onError during render
+      setTimeout(() => onErrorRef.current(t('voice.browserNotSupported')), 0);
+      return;
     }
+
+    setIsSupported(true);
+    
+    // Create recognition instance
+    const recognition = new SpeechRecognition();
+    
+    // Configure for Korean/English
+    recognition.lang = locale === 'ko' ? 'ko-KR' : 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      if (event.results && event.results.length > 0 && event.results[0].length > 0) {
+        const transcript = event.results[0][0].transcript.trim();
+        if (transcript) {
+          onTranscriptRef.current(transcript);
+        }
+      }
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      let errorMessage = t('voice.error');
+
+      if (event.error === 'no-speech') {
+        errorMessage = t('voice.noSpeech');
+      } else if (event.error === 'not-allowed') {
+        errorMessage = t('voice.permissionDenied');
+      } else if (event.error === 'network') {
+        errorMessage = locale === 'ko' 
+          ? '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.'
+          : 'Network error occurred. Please check your internet connection.';
+      }
+
+      onErrorRef.current(errorMessage);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Ignore errors when stopping
+        }
       }
     };
-  }, [locale, onTranscript, onError]);
+  }, [locale]); // Only depend on locale, not callbacks
 
   const handleClick = () => {
-    if (!isSupported || disabled) return;
+    if (!isSupported || disabled || !recognitionRef.current) return;
 
     if (isListening) {
-      recognitionRef.current?.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+      }
     } else {
       try {
-        recognitionRef.current?.start();
-      } catch (error) {
+        // Update language in case locale changed
+        recognitionRef.current.lang = locale === 'ko' ? 'ko-KR' : 'en-US';
+        recognitionRef.current.start();
+      } catch (error: any) {
+        console.error('Error starting recognition:', error);
+        // Handle specific errors
+        if (error?.message?.includes('already started')) {
+          // Recognition already running, ignore
+          return;
+        }
         onError(t('voice.couldNotStart'));
       }
     }
