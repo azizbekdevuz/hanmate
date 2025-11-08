@@ -8,7 +8,8 @@
  * This is the main interface where elders interact with HanMate via voice.
  */
 
-import { translations, type Locale } from "@/lib/i18n";
+import { type Locale } from "@/lib/i18n";
+import { VoiceInterface } from "@/components/VoiceInterface";
 
 interface PageProps {
   params: Promise<{ locale: Locale }>;
@@ -16,7 +17,6 @@ interface PageProps {
 
 export default async function Home({ params }: PageProps) {
   const { locale } = await params;
-  const t = translations[locale] || translations.ko;
 
   return (
     <main className="app-main">
@@ -26,10 +26,8 @@ export default async function Home({ params }: PageProps) {
           {locale === 'ko' ? '말씀만 하세요. 제가 들어드릴게요.' : 'Just speak. I\'ll listen.'}
         </p>
         
-        {/* Placeholder for voice interface - will be built next */}
-        <div className="app-placeholder">
-          <p>{locale === 'ko' ? '음성 인터페이스 준비 중...' : 'Voice interface coming next...'}</p>
-        </div>
+        {/* Voice Interface */}
+        <VoiceInterface locale={locale} />
       </div>
     </main>
   );
