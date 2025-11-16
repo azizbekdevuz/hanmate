@@ -113,13 +113,22 @@ export default function Home() {
     setError(null);
 
     try {
-      // Send to API
+      // Prepare conversation history for context
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+
+      // Send to API with conversation history
       const response = await fetch('/api/talk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ 
+          message: text,
+          conversationHistory: conversationHistory,
+        }),
       });
 
       if (!response.ok) {
@@ -168,38 +177,73 @@ export default function Home() {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
+      // Clean text for TTS (remove special characters that might cause issues)
+      const cleanText = text.replace(/[^\uAC00-\uD7A3a-zA-Z0-9\s.,!?~\-'"]/g, '');
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'ko-KR';
-      utterance.rate = 0.9; // Slightly slower for elders
-      utterance.pitch = 1.0;
+      
+      // More natural TTS settings
+      utterance.rate = 0.95; // Slightly slower for clarity, but not too slow
+      utterance.pitch = 1.1; // Slightly higher pitch for warmer, more natural tone
       utterance.volume = 1.0;
 
-      // Try to find Korean voice
-      const voices = window.speechSynthesis.getVoices();
-      const koreanVoice = voices.find(voice => 
-        voice.lang.startsWith('ko') || voice.name.includes('Korean')
-      );
-      
-      if (koreanVoice) {
-        utterance.voice = koreanVoice;
-      }
-
-      // Load voices if not available yet
-      if (voices.length === 0) {
-        window.speechSynthesis.onvoiceschanged = () => {
-          const updatedVoices = window.speechSynthesis.getVoices();
-          const koreanVoice = updatedVoices.find(voice => 
-            voice.lang.startsWith('ko') || voice.name.includes('Korean')
+      // Function to find and set the best Korean voice
+      const setKoreanVoice = () => {
+        const voices = window.speechSynthesis.getVoices();
+        
+        // Priority: 1) Neural voices, 2) Premium voices, 3) Any Korean voice
+        let koreanVoice = voices.find(voice => 
+          voice.lang.startsWith('ko') && 
+          (voice.name.toLowerCase().includes('neural') || 
+           voice.name.toLowerCase().includes('premium') ||
+           voice.name.toLowerCase().includes('enhanced'))
+        );
+        
+        if (!koreanVoice) {
+          koreanVoice = voices.find(voice => 
+            voice.lang.startsWith('ko') && 
+            !voice.name.toLowerCase().includes('compact')
           );
-          if (koreanVoice) {
-            utterance.voice = koreanVoice;
-          }
+        }
+        
+        if (!koreanVoice) {
+          koreanVoice = voices.find(voice => 
+            voice.lang.startsWith('ko') || 
+            voice.name.includes('Korean')
+          );
+        }
+        
+        if (koreanVoice) {
+          utterance.voice = koreanVoice;
+          console.log('Using voice:', koreanVoice.name);
+        } else {
+          console.warn('No Korean voice found, using default');
+        }
+      };
+
+      // Try to set voice immediately
+      setKoreanVoice();
+
+      // If voices not loaded yet, wait for them
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          setKoreanVoice();
           window.speechSynthesis.speak(utterance);
         };
       }
 
+      // Add natural pauses for better speech flow
+      utterance.onboundary = (event) => {
+        // Natural pause handling
+      };
+
       utterance.onerror = (event) => {
         console.error('Speech synthesis error:', event);
+      };
+
+      utterance.onend = () => {
+        // Speech completed
       };
 
       window.speechSynthesis.speak(utterance);
