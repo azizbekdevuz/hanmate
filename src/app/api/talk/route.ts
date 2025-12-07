@@ -54,6 +54,7 @@ const FALLBACK_REPLY = '요즘 많이 힘드셨죠. 그래도 이렇게 말씀�
 /**
  * Clean response to remove non-Korean/English characters
  * Removes Chinese, Japanese, and other non-allowed characters
+ * Ensures only Korean and English characters are preserved
  */
 function cleanResponse(text: string): string {
   if (!text) return '';
