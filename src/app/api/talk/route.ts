@@ -49,6 +49,7 @@ const SYSTEM_PROMPT = `너는 "HanMate"라는 이름의 따뜻하고 지능적�
 const DEFAULT_REPLY = '네, 말씀해주세요. 제가 들어드리겠습니다. 어떤 일이 있으신가요?';
 
 // Fallback response when Ollama is unavailable
+// Used when Ollama service is not running or unavailable
 const FALLBACK_REPLY = '요즘 많이 힘드셨죠. 그래도 이렇게 말씀해 주셔서 참 좋아요.';
 
 /**
